@@ -9,15 +9,26 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn build(args: &[String]) -> Result<Config, &'static str> {
-        if args.len() < 3 {
-            return Err("not enough arguments");
-        }
+    pub fn build(mut args: impl Iterator<Item = String>) -> Result<Config, &'static str> { // Iterator is a trait not a type that why we need Item =
+         args.next(); // skip the first element which is func path or name of the program
 
-        let query = args[1].clone();
-        let file_path = args[2].clone();
-        let ignore_case = env::var("IGNORE_CASE").is_ok();
-        Ok(Config{query, file_path, ignore_case})
+         let query = match args.next() {
+            Some(arg) => arg,
+            None => return Err("Didn't get a query string"), // if we want to exit immediately, then return is needed here
+         };
+
+         let file_path = match args.next() {
+            Some(arg) => arg,
+            None => return Err("Didn't get a file path"),
+         };
+
+         let ignore_case = env::var("IGNORE_CASE").is_ok();
+
+         Ok(Config {
+            query,
+            file_path,
+            ignore_case,
+         })
     }
 }
 
@@ -41,31 +52,40 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
 // initial <> is to declare the lifetime param
 // str is dynamically sized type so must be behind pointer or reference
 pub fn search<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
-    let mut results = Vec::new();
+    
+    contents
+        .lines()
+        .filter(|line| line.contains(query)) // this are iterator adaptors, they transform elements of iterators
+        .collect()
+    
+    // the old version has mutable state, so removing that might enable parralel processing in the future
+    // let mut results = Vec::new();
 
-    for line in contents.lines() {
-        if line.contains(query) {
-            results.push(line);
-        }
-    }
+    // for line in contents.lines() {
+    //     if line.contains(query) {
+    //         results.push(line);
+    //     }
+    // }
 
-    results
+    // results
 }
 
 pub fn search_case_insensitive<'a>(
     query: &str, contents: &'a str,
 ) -> Vec<&'a str> {
-    let query = query.to_lowercase();
-    let mut results = Vec::new();
-
-    for line  in contents.lines() {
-        if line.to_lowercase().contains(&query) {
-            results.push(line);
-        }
-    }
     
-    results
+    let query = query.to_lowercase();
+
+    contents
+        .lines()
+        .filter(|line| line.to_lowercase().contains(&query))
+        .collect()
 }
+
+
+// As we progress, generally better to use iterators. Easier to understand, no need to have new vectors, etc. Abstracts away commonplace code.
+// example benefits: unrolling, no bounds check, etc
+// zero cost abstractions
 
 #[cfg(test)]
 mod tests {
