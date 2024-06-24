@@ -1,0 +1,15 @@
+{
+	"account_id": "DSOUJEIHNNFN7D3JLTPAT773DI",
+	"entrypoint": [
+		"cargo"
+	],
+	"credentials": [
+		{
+			"plugin": "cargo",
+			"credential_type": "api_token",
+			"usage_id": "api_token",
+			"vault_id": "ucr5usudezl56jxy6uf2nc5hq4",
+			"item_id": "5jil3ul3eatd3r4ueufy2ztpai"
+		}
+	]
+}
