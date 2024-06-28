@@ -40,4 +40,5 @@ fn main() {
 
     let m = MyBox::new(String::from("Rust"));
     hello(&m);
+    hello(&(*m)[..]); // equivalent
 }
